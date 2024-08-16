@@ -124,12 +124,13 @@
         //loop through csv to assign each set of csv attribute values to geojson region
         for (var i=0; i<csvData.length; i++){
             var csvRegion = csvData[i]; //the current region
-            var csvKey = csvRegion.unitname; //the CSV primary key
+            var csvKey = csvRegion.UNIT; //the CSV primary key
 
             //loop through geojson regions to find correct region
             for (var a=0; a<newyorkWMU.length; a++){
                                                 
                 var geojsonProps = newyorkWMU[a].properties; //the current region geojson properties
+                //console.log(geojsonProps)
                 
                 var geojsonKey = geojsonProps.UNIT; //the geojson primary key
 
@@ -156,12 +157,14 @@
             .attr("d", path);
 
         //add NY WMUs regions to map
+        //labels werent appearing on both the chart and the map
+        // adding + "u" + fixed it. because the numbers infront in the UNIT field break the css
         var wmus = map.selectAll(".wmus")
             .data(newyorkWMU)
             .enter()
             .append("path")
             .attr("class", function(d){
-                return "regions " + d.properties.unitname
+                return "regions " + "u" + d.properties.UNIT
             })
             .attr("d", path)
             .style("fill", function(d){
@@ -297,7 +300,7 @@
                 return b[expressed]-a[expressed]
             })
             .attr("class", function(d){
-                return "bar " + d.unitname;
+                return "bar " + "u" + d.UNIT;
             })
             .attr("width", chartInnerWidth / csvData.length - 1)
             .on("mouseover", function(event, d){
@@ -375,15 +378,20 @@
     function highlight(props){
         
         //change stroke
-        var selected = d3.selectAll("." + props.unitname)
-            .style("stroke", "blue")
+        //labels werent appearing on both the chart and the map
+        /// adding + "u" + fixed it. because the numbers infront in the UNIT field break the css
+        var selected = d3.selectAll("." + "u" + props.UNIT)
+            .style("stroke", "brown")
             .style("stroke-width", "2");
         setLabel(props);
     };
 
     //function to reset the element style on mouseout
     function dehighlight(props){
-        var selected = d3.selectAll("." + props.unitname)
+        //labels werent appearing on both the chart and the map
+        // adding + "u" + fixed it. because the numbers infront in the UNIT field break the css
+        var selected = d3.selectAll("." + "u" + props.UNIT)
+        //console.log(selected)
             .style("stroke", function(){
                 return getStyle(this, "stroke")
             })
@@ -414,7 +422,7 @@
         var infolabel = d3.select("body")
             .append("div")
             .attr("class", "infolabel")
-            .attr("id", props.unitname + "_label")
+            .attr("id", "u" + props.UNIT + "_label")
             .html(labelAttribute);
 
         var wmuLabel = infolabel.append("div")
