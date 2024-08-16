@@ -375,8 +375,7 @@
     function highlight(props){
         
         //change stroke
-        var affected = props.unitname || props.unitname;
-        var selected = d3.selectAll("." + affected)
+        var selected = d3.selectAll("." + props.unitname)
             .style("stroke", "blue")
             .style("stroke-width", "2");
         setLabel(props);
