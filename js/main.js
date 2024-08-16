@@ -4,6 +4,7 @@
     var attrArray = ["Buck_2007","Antlerless_2007","Buck_2008","Antlerless_2008","Buck_2009","Antlerless_2009","Buck_2010","Antlerless_2010","Buck_2011","Antlerless_2011","Buck_2012","Antlerless_2012","Buck_2013","Antlerless_2013","Buck_2014","Antlerless_2014","Buck_2015","Antlerless_2015","Buck_2016","Antlerless_2016","Buck_2017","Antlerless_2017","Buck_2018","Antlerless_2018","Buck_2019","Antlerless_2019","Buck_2020","Antlerless_2020","Buck_2021","Antlerless_2021","Buck_Total","Antlerless_Total","BuckPercentTotal","AntlerlessPercentTotal"]
     var expressed = attrArray[0]; //initial attribute
 
+
     //chart frame dimensions
     var chartWidth = window.innerWidth * 0.425,
         chartHeight = 473,
@@ -27,7 +28,7 @@
     //set up choropleth map
     function setMap(){
         //map frame dimensions
-        var width = window.innerWidth * 0.500,
+        var width = window.innerWidth * 0.5,
             height = 460;
 
         //create new svg container for the map
@@ -123,13 +124,13 @@
         //loop through csv to assign each set of csv attribute values to geojson region
         for (var i=0; i<csvData.length; i++){
             var csvRegion = csvData[i]; //the current region
-        
-            var csvKey = csvRegion.UNIT; //the CSV primary key
+            var csvKey = csvRegion.unitname; //the CSV primary key
 
             //loop through geojson regions to find correct region
             for (var a=0; a<newyorkWMU.length; a++){
                                                 
                 var geojsonProps = newyorkWMU[a].properties; //the current region geojson properties
+                
                 var geojsonKey = geojsonProps.UNIT; //the geojson primary key
 
                 //where primary keys match, transfer csv data to geojson properties object
@@ -160,19 +161,17 @@
             .enter()
             .append("path")
             .attr("class", function(d){
-                return "regions " + d.properties.UNIT;
+                return "regions " + d.properties.unitname
             })
             .attr("d", path)
             .style("fill", function(d){
                 var value = d.properties[expressed];
                 if (value) {
-                    //console.log(value)
                     return colorScale(value);
-                    console.log(value)
                 } else {
                     return "#ccc";
                 }
-            })
+            })            
             .on("mouseover", function(event, d){
                 highlight(d.properties);
             })
@@ -180,11 +179,12 @@
                 dehighlight(d.properties);
             })
             .on("mousemove", moveLabel);
-        
-        var desc = wmus.append("desc")
-            .text('{"stroke": "000", "stroke-width": "0.5px"}');
 
-    };
+        //dehighlight
+        var desc = wmus.append("desc")
+            .text('{"stroke": "#000", "stroke-width": "0.5px"}');
+
+    }
 
     function makeColorScale(data){
         var colorClasses = [
@@ -297,7 +297,7 @@
                 return b[expressed]-a[expressed]
             })
             .attr("class", function(d){
-                return "bar " + d.UNIT;
+                return "bar " + d.unitname;
             })
             .attr("width", chartInnerWidth / csvData.length - 1)
             .on("mouseover", function(event, d){
@@ -375,51 +375,52 @@
     function highlight(props){
         
         //change stroke
-        var selected = d3.selectAll("." + props.UNIT)
+        var affected = props.unitname || props.unitname;
+        var selected = d3.selectAll("." + affected)
             .style("stroke", "blue")
-            .style("stroke-width", "0");
+            .style("stroke-width", "2");
         setLabel(props);
-};
+    };
 
     //function to reset the element style on mouseout
     function dehighlight(props){
-            var selected = d3.selectAll("." + props.UNIT)
-                .style("stroke", function(){
-                    return getStyle(this, "stroke")
-                })
-                .style("stroke-width", function(){
-                    return getStyle(this, "stroke-width")
-                });
+        var selected = d3.selectAll("." + props.unitname)
+            .style("stroke", function(){
+                return getStyle(this, "stroke")
+            })
+            .style("stroke-width", function(){
+                return getStyle(this, "stroke-width")
+            });
 
-            function getStyle(element, styleName){
-                var styleText = d3.select(element)
-                    .select("desc")
-                    .text();
+        function getStyle(element, styleName){
+            var styleText = d3.select(element)
+                .select("desc")
+                .text();
 
-                var styleObject = JSON.parse(styleText);
+            var styleObject = JSON.parse(styleText);
 
-                return styleObject[styleName];
-            };
-            d3.select(".infolabel")
-                .remove();
+            return styleObject[styleName];
+        };
+        d3.select(".infolabel")
+            .remove();
     };
 
     //function to create dynamic label
     function setLabel(props){
-            //label content
-            var labelAttribute = "<h1>" + props[expressed] +
-                "</h1><b>" + expressed + "</b>";
+        //label content
+        var labelAttribute = "<h1>" + props[expressed] +
+            "</h1><b>" + expressed + "</b>";
 
-            //create info label div
-            var infolabel = d3.select("body")
-                .append("div")
-                .attr("class", "infolabel")
-                .attr("id", props.UNIT + "_label")
-                .html(labelAttribute);
+        //create info label div
+        var infolabel = d3.select("body")
+            .append("div")
+            .attr("class", "infolabel")
+            .attr("id", props.unitname + "_label")
+            .html(labelAttribute);
 
-            var wmuLabel = infolabel.append("div")
-                .attr("class", "labelname")
-                .html(props.UNIT);
+        var wmuLabel = infolabel.append("div")
+            .attr("class", "labelname")
+            .html(props.UNIT);
     };
 
     //function to move info label with mouse
@@ -444,6 +445,6 @@
         d3.select(".infolabel")
             .style("left", x + "px")
             .style("top", y + "px");
-    };
+};
 
 })(); //last line of main.js
